@@ -13,11 +13,11 @@ export default function App() {
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   // Fetch dashboard data
-  useEffect(() => {
+useEffect(() => {
     if (token) {
       fetchDashboardData();
     }
-  }, [token, currentPage]);
+  }, [token, currentPage, fetchDashboardData]);
 
   const fetchDashboardData = async () => {
     try {
