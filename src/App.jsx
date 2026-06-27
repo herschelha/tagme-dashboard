@@ -10,7 +10,7 @@ export default function App() {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [visitors, setVisitors] = useState(null);
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_URL = 'https://tap-share-connect-production.up.railway.app';
 
   const fetchDashboardData = useCallback(async () => {
     try {
