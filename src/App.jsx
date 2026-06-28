@@ -206,6 +206,10 @@ const [drilldownEndpoint, setDrilldownEndpoint] = useState('');
     setDrilldownEndpoint={setDrilldownEndpoint}
   />
 }
+
+{currentPage === 'visitors' && 
+  <VisitorsPage data={visitors} />
+}
         
       </div>
       {/* Visitor Detail Modal */}
