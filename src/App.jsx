@@ -1,4 +1,3 @@
-*/
 import {
 VisitorDetailModal,
 VisitorsTableModal,
@@ -22,7 +21,6 @@ export default function App() {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [visitors, setVisitors] = useState(null);
 
-*/
 const [selectedVisitor, setSelectedVisitor] = useState(null);
 const [activeDrilldown, setActiveDrilldown] = useState(null); // 'all-visitors' | 'new-contacts' | 'date-drill'
 const [drilldownDate, setDrilldownDate] = useState(null); // For date-specific drill-down
