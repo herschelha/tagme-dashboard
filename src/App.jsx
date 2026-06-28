@@ -162,11 +162,102 @@ const [drilldownEndpoint, setDrilldownEndpoint] = useState('');
 
       {/* Main Content */}
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 24px' }}>
-        {user?.role === 'admin' && currentPage === 'admin-dashboard' && <AdminDashboard data={dashboardData} />}
-        {user?.role === 'customer' && currentPage === 'dashboard' && <CustomerDashboard data={dashboardData} />}
-        {currentPage === 'analytics' && <AnalyticsPage data={analyticsData} />}
-        {currentPage === 'visitors' && <VisitorsPage data={visitors} />}
+             
+        {user?.role === 'admin' && currentPage === 'admin-dashboard' && 
+  <AdminDashboard 
+    data={dashboardData} 
+    selectedVisitor={selectedVisitor}
+    setSelectedVisitor={setSelectedVisitor}
+    activeDrilldown={activeDrilldown}
+    setActiveDrilldown={setActiveDrilldown}
+    drilldownDate={drilldownDate}
+    setDrilldownDate={setDrilldownDate}
+    drilldownTitle={drilldownTitle}
+    setDrilldownTitle={setDrilldownTitle}
+    drilldownEndpoint={drilldownEndpoint}
+    setDrilldownEndpoint={setDrilldownEndpoint}
+  />
+}
+
+{user?.role === 'customer' && currentPage === 'dashboard' && 
+  <CustomerDashboard 
+    data={dashboardData}
+    selectedVisitor={selectedVisitor}
+    setSelectedVisitor={setSelectedVisitor}
+    activeDrilldown={activeDrilldown}
+    setActiveDrilldown={setActiveDrilldown}
+    drilldownDate={drilldownDate}
+    setDrilldownDate={setDrilldownDate}
+    drilldownTitle={drilldownTitle}
+    setDrilldownTitle={setDrilldownTitle}
+    drilldownEndpoint={drilldownEndpoint}
+    setDrilldownEndpoint={setDrilldownEndpoint}
+  />
+}
+
+{currentPage === 'analytics' && 
+  <AnalyticsPage 
+    data={analyticsData}
+    selectedVisitor={selectedVisitor}
+    setSelectedVisitor={setSelectedVisitor}
+    activeDrilldown={activeDrilldown}
+    setActiveDrilldown={setActiveDrilldown}
+    drilldownDate={drilldownDate}
+    setDrilldownDate={setDrilldownDate}
+    drilldownTitle={drilldownTitle}
+    setDrilldownTitle={setDrilldownTitle}
+    drilldownEndpoint={drilldownEndpoint}
+    setDrilldownEndpoint={setDrilldownEndpoint}
+  />
+}
+        
       </div>
+      {/* Visitor Detail Modal */}
+      {selectedVisitor && (
+        <VisitorDetailModal
+          visitor={selectedVisitor}
+          onClose={() => setSelectedVisitor(null)}
+        />
+      )}
+
+      {/* Visitors Table Modal */}
+      {activeDrilldown === 'all-visitors' && (
+        <VisitorsTableModal
+          title={drilldownTitle}
+          apiEndpoint={drilldownEndpoint}
+          onVisitorSelect={(visitor) => {
+            setSelectedVisitor(visitor);
+          }}
+          onClose={() => setActiveDrilldown(null)}
+        />
+      )}
+
+      {/* Date Drill-Down Modal */}
+      {activeDrilldown === 'date-drill' && drilldownDate && (
+        <DateDrilldownModal
+          date={drilldownDate}
+          apiEndpoint={drilldownEndpoint}
+          onVisitorSelect={(visitor) => {
+            setSelectedVisitor(visitor);
+          }}
+          onClose={() => {
+            setActiveDrilldown(null);
+            setDrilldownDate(null);
+          }}
+        />
+      )}
+
+      {/* New Contacts Modal */}
+      {activeDrilldown === 'new-contacts' && (
+        <VisitorsTableModal
+          title={drilldownTitle}
+          apiEndpoint={drilldownEndpoint}
+          onVisitorSelect={(visitor) => {
+            setSelectedVisitor(visitor);
+          }}
+          onClose={() => setActiveDrilldown(null)}
+        />
+      )}
     </div>
   );
 }
@@ -272,11 +363,22 @@ function AdminDashboard({ data }) {
       <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1f2937', marginBottom: 24 }}>👥 Customer Management</h1>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
-        <MetricCard title="Total Customers" value={data.totalCustomers || 0} icon="👥" color="#3b82f6" />
-        <MetricCard title="Total Scans" value={data.totalScans || 0} icon="📱" color="#10b981" />
-        <MetricCard title="Monthly Revenue" value={`R${data.monthRevenue || 0}`} icon="💰" color="#8b5cf6" />
-        <MetricCard title="This Month Scans" value={data.monthScans || 0} icon="📈" color="#f59e0b" />
-      </div>
+  <MetricCard title="Total Customers" value={stats.totalCustomers || 0} icon="👥" color="#3b82f6" />
+  
+  <DrilldownStatCard
+    label="Total Scans"
+    value={stats.totalScans || 0}
+    icon="📊"
+    onClick={() => {
+      setActiveDrilldown('all-visitors');
+      setDrilldownTitle('All Visitors');
+      setDrilldownEndpoint('/api/admin/analytics/visitors');
+    }}
+  />
+  
+  <MetricCard title="Monthly Revenue" value={`R${stats.monthlyRevenue || 0}`} icon="💰" color="#f59e0b" />
+  <MetricCard title="This Month Scans" value={stats.thisMonthScans || 0} icon="📈" color="#8b5cf6" />
+</div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
         <Card title="Weekly Scan Trend">
@@ -351,7 +453,16 @@ function CustomerDashboard({ data }) {
         <MetricCard title="Total Scans" value={stats.totalScans || 0} icon="📱" color="#3b82f6" />
         <MetricCard title="This Month" value={stats.scansThisMonth || 0} icon="📅" color="#10b981" />
         <MetricCard title="This Week" value={stats.scansThisWeek || 0} icon="📈" color="#8b5cf6" />
-        <MetricCard title="New Visitors" value={stats.newVisitors || 0} icon="👥" color="#f59e0b" />
+        <DrilldownStatCard
+  label="New Visitors"
+  value={stats.newVisitors || 0}
+  icon="👥"
+  onClick={() => {
+    setActiveDrilldown('new-contacts');
+    setDrilldownTitle('New Contacts This Week');
+    setDrilldownEndpoint('/api/customer/analytics/new-contacts');
+  }}
+/>
       </div>
 
       <Card title="Your Profile">
@@ -386,16 +497,35 @@ function AnalyticsPage() {
       <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1f2937', marginBottom: 24 }}>📈 Analytics</h1>
 
       <Card title="Daily Scans This Week">
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="scans" fill="#3b82f6" />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
+  <ResponsiveContainer width="100%" height={300}>
+    <BarChart 
+      data={chartData}
+      onClick={(e) => {
+        if (e && e.activeLabel) {
+          // Get the day name and convert to date
+          const daysMap = {'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4, 'Sat': 5, 'Sun': 6};
+          const today = new Date();
+          const dayOfWeek = today.getDay();
+          const startOfWeek = new Date(today);
+          startOfWeek.setDate(today.getDate() - dayOfWeek);
+          const targetDate = new Date(startOfWeek);
+          targetDate.setDate(startOfWeek.getDate() + daysMap[e.activeLabel]);
+          const dateStr = targetDate.toISOString().split('T')[0];
+          
+          setDrilldownDate(dateStr);
+          setActiveDrilldown('date-drill');
+          setDrilldownEndpoint('/api/customer/analytics/visitors');
+        }
+      }}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="date" />
+      <YAxis />
+      <Tooltip />
+      <Bar dataKey="scans" fill="#3b82f6" cursor="pointer" />
+    </BarChart>
+  </ResponsiveContainer>
+</Card>
 
       <div style={{ marginTop: 16 }}>
         <Card title="Weekly Trend">
