@@ -345,6 +345,7 @@ function LoginPage({ onLogin }) {
 
 function AdminDashboard({ data }) {
   if (!data) return <LoadingSpinner />;
+  const stats = data.stats || {};
 
   const chartData = [
     { name: 'Week 1', scans: 45 },
