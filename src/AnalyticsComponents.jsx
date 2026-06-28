@@ -143,9 +143,9 @@ export function VisitorsTableModal({
       if (!response.ok) throw new Error('Failed to fetch visitors');
       
       const data = await response.json();
-      setVisitors(data.visitors);
-      setTotal(data.total);
-      setHasMore(data.hasMore);
+      setVisitors(data.visitors || data.contacts || []);
+      setTotal(data.total || data.count || 0);
+      setHasMore(data.hasMore || false);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -269,7 +269,7 @@ export function DateDrilldownModal({
       if (!response.ok) throw new Error('Failed to fetch data');
       
       const data = await response.json();
-      setVisitors(data.visitors);
+      setVisitors(data.visitors || data.contacts || []);
       setError(null);
     } catch (err) {
       setError(err.message);
