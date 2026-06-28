@@ -134,7 +134,7 @@ export function VisitorsTableModal({
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${apiEndpoint}?limit=${limit}&offset=${page * limit}`,
+        `${process.env.REACT_APP_API_URL || `https://tap-share-connect-production.up.railway.app`}${apiEndpoint}?limit=${limit}&offset=${page * limit}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -260,7 +260,7 @@ export function DateDrilldownModal({
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${apiEndpoint}/by-date/${date}`,
+        `${process.env.REACT_APP_API_URL || `https://tap-share-connect-production.up.railway.app`}${apiEndpoint}/by-date/${date}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
