@@ -1,3 +1,15 @@
+*/
+import {
+VisitorDetailModal,
+VisitorsTableModal,
+DateDrilldownModal,
+DrilldownStatCard,
+InteractiveBarChart,
+analyticsStyles
+} from './AnalyticsComponents';
+/**
+
+
 /* eslint-disable */
 import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -9,6 +21,14 @@ export default function App() {
   const [dashboardData, setDashboardData] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
   const [visitors, setVisitors] = useState(null);
+
+*/
+const [selectedVisitor, setSelectedVisitor] = useState(null);
+const [activeDrilldown, setActiveDrilldown] = useState(null); // 'all-visitors' | 'new-contacts' | 'date-drill'
+const [drilldownDate, setDrilldownDate] = useState(null); // For date-specific drill-down
+const [drilldownTitle, setDrilldownTitle] = useState('');
+const [drilldownEndpoint, setDrilldownEndpoint] = useState('');
+
 
   const API_URL = 'https://tap-share-connect-production.up.railway.app';
 
