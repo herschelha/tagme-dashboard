@@ -127,6 +127,7 @@ const [drilldownEndpoint, setDrilldownEndpoint] = useState('');
 
   return (
     <div style={{ minHeight: '100vh', background: '#f0f4f8' }}>
+      <style>{analyticsStyles}</style>     
       {/* Navigation */}
       <nav style={{ background: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: '0 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64 }}>
