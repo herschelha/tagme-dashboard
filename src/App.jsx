@@ -1,15 +1,12 @@
-import {
-VisitorDetailModal,
-VisitorsTableModal,
-DateDrilldownModal,
-DrilldownStatCard,
-analyticsStyles
-} from './AnalyticsComponents';
-/**
-
-
 /* eslint-disable */
 import React, { useState, useEffect, useCallback } from 'react';
+import {
+  VisitorDetailModal,
+  VisitorsTableModal,
+  DateDrilldownModal,
+  DrilldownStatCard,
+  analyticsStyles
+} from './AnalyticsComponents';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function App() {
