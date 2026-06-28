@@ -14,7 +14,29 @@ import React, { useState, useEffect } from 'react';
  * Shows full details of a single visitor/contact
  */
 export function VisitorDetailModal({ visitor, onClose }) {
+  const [copied, setCopied] = useState(false);
+
   if (!visitor) return null;
+
+  const downloadVCard = () => {
+    const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${visitor.name}\nN:${visitor.name.split(' ').reverse().join(';')};;;\nTEL;TYPE=CELL:${visitor.phone || ''}\nEMAIL;TYPE=WORK:${visitor.email || ''}\nORG:${visitor.company || ''}\nNOTE:Met via TagMe by Hash3D on ${new Date(visitor.created_at).toLocaleDateString()}\nEND:VCARD`;
+    const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${visitor.name.replace(/\s+/g, '_')}.vcf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  };
+
+  const copyContact = () => {
+    const text = [visitor.name, visitor.company, visitor.phone, visitor.email].filter(Boolean).join('\n');
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -32,11 +54,11 @@ export function VisitorDetailModal({ visitor, onClose }) {
             </div>
             <div className="detail-row">
               <label>Email:</label>
-              <span>{visitor.email || '—'}</span>
+              <span>{visitor.email ? <a href={`mailto:${visitor.email}`} style={{color:'#3b82f6'}}>{visitor.email}</a> : '—'}</span>
             </div>
             <div className="detail-row">
               <label>Phone:</label>
-              <span>{visitor.phone || '—'}</span>
+              <span>{visitor.phone ? <a href={`tel:${visitor.phone}`} style={{color:'#3b82f6'}}>{visitor.phone}</a> : '—'}</span>
             </div>
             <div className="detail-row">
               <label>Company:</label>
@@ -48,21 +70,33 @@ export function VisitorDetailModal({ visitor, onClose }) {
             </div>
           </div>
 
-          <div className="modal-actions">
-            <button 
-              className="btn btn-secondary"
-              onClick={() => {
-                // Copy contact details to clipboard
-                const text = `${visitor.name}\n${visitor.email}\n${visitor.phone}`;
-                navigator.clipboard.writeText(text);
-              }}
-            >
-              Copy Contact
+          {/* Primary Actions */}
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginTop:20}}>
+            <button onClick={downloadVCard} style={{padding:'12px', background:'linear-gradient(135deg,#3b82f6,#2563eb)', border:'none', borderRadius:10, color:'white', fontWeight:700, cursor:'pointer', fontSize:14}}>
+              📲 Save to Contacts
             </button>
-            <button className="btn btn-primary" onClick={onClose}>
-              Close
+            <button onClick={copyContact} style={{padding:'12px', background: copied ? '#f0fdf4' : '#f3f4f6', border: copied ? '1px solid #bbf7d0' : '1px solid #e5e7eb', borderRadius:10, color: copied ? '#166534' : '#374151', fontWeight:700, cursor:'pointer', fontSize:14}}>
+              {copied ? '✅ Copied!' : '📋 Copy Info'}
             </button>
           </div>
+
+          {/* Quick Actions */}
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginTop:10}}>
+            {visitor.email && (
+              <a href={`mailto:${visitor.email}`} style={{display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'10px', background:'#eff6ff', borderRadius:10, color:'#2563eb', fontWeight:600, fontSize:13, textDecoration:'none'}}>
+                ✉️ Email
+              </a>
+            )}
+            {visitor.phone && (
+              <a href={`https://wa.me/${visitor.phone.replace(/\D/g,'')}`} target="_blank" rel="noreferrer" style={{display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'10px', background:'#f0fdf4', borderRadius:10, color:'#16a34a', fontWeight:600, fontSize:13, textDecoration:'none'}}>
+                💬 WhatsApp
+              </a>
+            )}
+          </div>
+
+          <button onClick={onClose} style={{width:'100%', marginTop:12, padding:'10px', background:'transparent', border:'1px solid #e5e7eb', borderRadius:10, color:'#6b7280', fontWeight:600, cursor:'pointer', fontSize:14}}>
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -100,7 +134,7 @@ export function VisitorsTableModal({
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'https://tap-share-connect-production.up.railway.app'}${apiEndpoint}?limit=${limit}&offset=${page * limit}`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${apiEndpoint}?limit=${limit}&offset=${page * limit}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -109,9 +143,9 @@ export function VisitorsTableModal({
       if (!response.ok) throw new Error('Failed to fetch visitors');
       
       const data = await response.json();
-      setVisitors(data.visitors || data.contacts || []);
-      setTotal(data.total || data.count || 0);
-      setHasMore(data.hasMore || false);
+      setVisitors(data.visitors);
+      setTotal(data.total);
+      setHasMore(data.hasMore);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -226,7 +260,7 @@ export function DateDrilldownModal({
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'https://tap-share-connect-production.up.railway.app'}${apiEndpoint}/by-date/${date}`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${apiEndpoint}/by-date/${date}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
