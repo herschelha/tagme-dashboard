@@ -3,7 +3,6 @@ VisitorDetailModal,
 VisitorsTableModal,
 DateDrilldownModal,
 DrilldownStatCard,
-InteractiveBarChart,
 analyticsStyles
 } from './AnalyticsComponents';
 /**
