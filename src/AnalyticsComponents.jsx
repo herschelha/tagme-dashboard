@@ -100,7 +100,7 @@ export function VisitorsTableModal({
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${apiEndpoint}?limit=${limit}&offset=${page * limit}`,
+        `${process.env.REACT_APP_API_URL || 'https://tap-share-connect-production.up.railway.app'}${apiEndpoint}?limit=${limit}&offset=${page * limit}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -109,9 +109,9 @@ export function VisitorsTableModal({
       if (!response.ok) throw new Error('Failed to fetch visitors');
       
       const data = await response.json();
-      setVisitors(data.visitors);
-      setTotal(data.total);
-      setHasMore(data.hasMore);
+      setVisitors(data.visitors || data.contacts || []);
+      setTotal(data.total || data.count || 0);
+      setHasMore(data.hasMore || false);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -226,7 +226,7 @@ export function DateDrilldownModal({
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${apiEndpoint}/by-date/${date}`,
+        `${process.env.REACT_APP_API_URL || 'https://tap-share-connect-production.up.railway.app'}${apiEndpoint}/by-date/${date}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
