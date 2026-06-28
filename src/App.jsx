@@ -206,6 +206,43 @@ const [drilldownEndpoint, setDrilldownEndpoint] = useState('');
     setDrilldownEndpoint={setDrilldownEndpoint}
   />
 }
+
+{currentPage === 'visitors' && (
+  <div>
+    <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1f2937', marginBottom: 24 }}>👥 Your Visitors</h1>
+    <div style={{
+      background: 'white',
+      borderRadius: 12,
+      padding: 24,
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+      textAlign: 'center'
+    }}>
+      <div style={{ fontSize: 48, marginBottom: 16 }}>👥</div>
+      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8, color: '#1f2937' }}>View Your Visitors</h2>
+      <p style={{ color: '#6b7280', marginBottom: 24 }}>See everyone who has tapped your NFC tag</p>
+      <button
+        onClick={() => {
+          setActiveDrilldown('all-visitors');
+          setDrilldownTitle('All Your Visitors');
+          setDrilldownEndpoint('/api/customer/analytics/visitors');
+        }}
+        style={{
+          padding: '14px 32px',
+          background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+          color: 'white',
+          border: 'none',
+          borderRadius: 12,
+          fontSize: 15,
+          fontWeight: 700,
+          cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
+        }}
+      >
+        👥 View All Visitors
+      </button>
+    </div>
+  </div>
+)}
         
       </div>
       {/* Visitor Detail Modal */}
