@@ -343,7 +343,19 @@ function LoginPage({ onLogin }) {
   );
 }
 
-function AdminDashboard({ data }) {
+function AdminDashboard({ 
+  data,
+  selectedVisitor,
+  setSelectedVisitor,
+  activeDrilldown,
+  setActiveDrilldown,
+  drilldownDate,
+  setDrilldownDate,
+  drilldownTitle,
+  setDrilldownTitle,
+  drilldownEndpoint,
+  setDrilldownEndpoint
+}) {
   if (!data) return <LoadingSpinner />;
   const stats = data.stats || {};
 
@@ -442,7 +454,19 @@ function AdminDashboard({ data }) {
   );
 }
 
-function CustomerDashboard({ data }) {
+function CustomerDashboard({ 
+  data,
+  selectedVisitor,
+  setSelectedVisitor,
+  activeDrilldown,
+  setActiveDrilldown,
+  drilldownDate,
+  setDrilldownDate,
+  drilldownTitle,
+  setDrilldownTitle,
+  drilldownEndpoint,
+  setDrilldownEndpoint
+}) {
   if (!data) return <LoadingSpinner />;
   const stats = data.stats || {};
 
@@ -475,7 +499,19 @@ function CustomerDashboard({ data }) {
   );
 }
 
-function AnalyticsPage() {
+  function AnalyticsPage({ 
+  data,
+  selectedVisitor,
+  setSelectedVisitor,
+  activeDrilldown,
+  setActiveDrilldown,
+  drilldownDate,
+  setDrilldownDate,
+  drilldownTitle,
+  setDrilldownTitle,
+  drilldownEndpoint,
+  setDrilldownEndpoint
+}) {
   const chartData = [
     { date: 'Mon', scans: 12 },
     { date: 'Tue', scans: 15 },
