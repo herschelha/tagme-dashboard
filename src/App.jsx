@@ -1,11 +1,15 @@
-/* eslint-disable */
 import {
 VisitorDetailModal,
 VisitorsTableModal,
 DateDrilldownModal,
 DrilldownStatCard,
+InteractiveBarChart,
 analyticsStyles
 } from './AnalyticsComponents';
+/**
+
+
+/* eslint-disable */
 import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -15,7 +19,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('login');
   const [dashboardData, setDashboardData] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
-  const [visitors, setVisitors] = useState(null); // eslint-disable-line no-unused-vars
+  const [visitors, setVisitors] = useState(null);
 
 const [selectedVisitor, setSelectedVisitor] = useState(null);
 const [activeDrilldown, setActiveDrilldown] = useState(null); // 'all-visitors' | 'new-contacts' | 'date-drill'
@@ -206,10 +210,6 @@ const [drilldownEndpoint, setDrilldownEndpoint] = useState('');
     setDrilldownEndpoint={setDrilldownEndpoint}
   />
 }
-
-{currentPage === 'visitors' && 
-  <VisitorsPage data={visitors} />
-}
         
       </div>
       {/* Visitor Detail Modal */}
@@ -378,16 +378,7 @@ function AdminDashboard({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
   <MetricCard title="Total Customers" value={stats.totalCustomers || 0} icon="👥" color="#3b82f6" />
   
-  <DrilldownStatCard
-    label="Total Scans"
-    value={stats.totalScans || 0}
-    icon="📊"
-    onClick={() => {
-      setActiveDrilldown('all-visitors');
-      setDrilldownTitle('All Visitors');
-      setDrilldownEndpoint('/api/admin/analytics/visitors');
-    }}
-  />
+  <MetricCard title="Total Scans" value={stats.totalScans || 0} icon="📊" color="#10b981" />
   
   <MetricCard title="Monthly Revenue" value={`R${stats.monthlyRevenue || 0}`} icon="💰" color="#f59e0b" />
   <MetricCard title="This Month Scans" value={stats.thisMonthScans || 0} icon="📈" color="#8b5cf6" />
@@ -479,15 +470,44 @@ function CustomerDashboard({
         <MetricCard title="This Month" value={stats.scansThisMonth || 0} icon="📅" color="#10b981" />
         <MetricCard title="This Week" value={stats.scansThisWeek || 0} icon="📈" color="#8b5cf6" />
         <DrilldownStatCard
-  label="New Visitors"
-  value={stats.newVisitors || 0}
-  icon="👥"
-  onClick={() => {
-    setActiveDrilldown('new-contacts');
-    setDrilldownTitle('New Contacts This Week');
-    setDrilldownEndpoint('/api/customer/analytics/new-contacts');
-  }}
-/>
+          label="New Visitors"
+          value={stats.newVisitors || 0}
+          icon="👥"
+          onClick={() => {
+            setActiveDrilldown('new-contacts');
+            setDrilldownTitle('New Contacts This Week');
+            setDrilldownEndpoint('/api/customer/analytics/new-contacts');
+          }}
+        />
+      </div>
+
+      {/* All Visitors Button */}
+      <div style={{ marginBottom: 24 }}>
+        <button
+          onClick={() => {
+            setActiveDrilldown('all-visitors');
+            setDrilldownTitle('All Your Visitors');
+            setDrilldownEndpoint('/api/customer/analytics/visitors');
+          }}
+          style={{
+            width: '100%',
+            padding: '14px',
+            background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+            color: 'white',
+            border: 'none',
+            borderRadius: 12,
+            fontSize: 15,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
+          }}
+        >
+          👥 View All My Visitors
+        </button>
       </div>
 
       <Card title="Your Profile">
@@ -602,7 +622,6 @@ function CustomerDashboard({
   );
 }
 
-// eslint-disable-next-line no-unused-vars
 function VisitorsPage({ data }) {
   if (!data) return <LoadingSpinner />;
 
