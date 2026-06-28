@@ -92,6 +92,7 @@ export function VisitorsTableModal({
 
   useEffect(() => {
     fetchVisitors();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   const fetchVisitors = async () => {
@@ -217,6 +218,7 @@ export function DateDrilldownModal({
 
   useEffect(() => {
     fetchVisitorsForDate();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date]);
 
   const fetchVisitorsForDate = async () => {

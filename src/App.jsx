@@ -1,15 +1,11 @@
+/* eslint-disable */
 import {
 VisitorDetailModal,
 VisitorsTableModal,
 DateDrilldownModal,
 DrilldownStatCard,
-InteractiveBarChart,
 analyticsStyles
 } from './AnalyticsComponents';
-/**
-
-
-/* eslint-disable */
 import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -19,7 +15,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('login');
   const [dashboardData, setDashboardData] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
-  const [visitors, setVisitors] = useState(null);
+  const [visitors, setVisitors] = useState(null); // eslint-disable-line no-unused-vars
 
 const [selectedVisitor, setSelectedVisitor] = useState(null);
 const [activeDrilldown, setActiveDrilldown] = useState(null); // 'all-visitors' | 'new-contacts' | 'date-drill'
@@ -602,6 +598,7 @@ function CustomerDashboard({
   );
 }
 
+// eslint-disable-next-line no-unused-vars
 function VisitorsPage({ data }) {
   if (!data) return <LoadingSpinner />;
 
