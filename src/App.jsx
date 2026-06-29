@@ -57,11 +57,11 @@ const [drilldownEndpoint, setDrilldownEndpoint] = useState('');
 
   const fetchVisitors = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/api/customer/analytics/visitors`, {
+      const response = await fetch(`${API_URL}/api/customer/analytics/visitors?limit=100`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
-      setVisitors(data);
+      setVisitors(data.visitors || data.contacts || data || []);
     } catch (error) {
       console.error('Error fetching visitors:', error);
     }
@@ -390,7 +390,7 @@ function AdminDashboard({
   setDrilldownEndpoint
 }) {
   if (!data) return <LoadingSpinner />;
-  const stats = data.stats || {};
+  const stats = data.stats || data || {};
 
   const chartData = [
     { name: 'Week 1', scans: 45 },
