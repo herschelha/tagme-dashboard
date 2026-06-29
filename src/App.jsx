@@ -57,7 +57,7 @@ const [drilldownEndpoint, setDrilldownEndpoint] = useState('');
 
   const fetchVisitors = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/api/visitors`, {
+      const response = await fetch(`${API_URL}/api/customer/analytics/visitors`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
