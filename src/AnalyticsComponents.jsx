@@ -40,7 +40,7 @@ export function VisitorDetailModal({ visitor, onClose }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay detail-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{visitor.name}</h2>
@@ -451,6 +451,10 @@ const analyticsStyles = `
   z-index: 1000;
   animation: fadeIn 0.2s ease;
 }
+}
+
+.modal-overlay.detail-overlay {
+  z-index: 2000;
 
 @keyframes fadeIn {
   from { opacity: 0; }
