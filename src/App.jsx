@@ -196,7 +196,7 @@ export default function App() {
         {user?.role === 'admin' && page === 'dashboard' && <AdminDash data={dashData} onViewVisitors={openVisitors} />}
         {user?.role === 'customer' && page === 'dashboard' && <CustomerDash data={dashData} onViewVisitors={openVisitors} token={token} />}
         {user?.role === 'customer' && page === 'visitors' && <VisitorsPage onViewAll={() => openVisitors('All Your Visitors', '/api/customer/analytics/visitors')} />}
-        {page === 'analytics' && <AnalyticsPage />}
+        {page === 'analytics' && <AnalyticsPage token={token} />}
         {page === 'settings' && <SettingsPage token={token} user={user} />}
       </div>
 
@@ -484,15 +484,49 @@ function AdminDash({ data, onViewVisitors }) {
 }
 
 // ─── ANALYTICS PAGE ───────────────────────────────────────────────────────────
-function AnalyticsPage() {
-  const chartData = [{date:'Mon',scans:4},{date:'Tue',scans:7},{date:'Wed',scans:5},{date:'Thu',scans:9},{date:'Fri',scans:6},{date:'Sat',scans:3},{date:'Sun',scans:8}];
+function AnalyticsPage({ token }) {
+  const [chartData, setChartData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch(`${API}/api/analytics/scans`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json(); // array of { date, count } for days with at least 1 scan
+
+        // Build the last 7 days, filling in 0 for any day with no scans
+        const days = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+          const label = d.toLocaleDateString('en-US', { weekday: 'short' });
+          const match = Array.isArray(data) ? data.find(r => r.date && String(r.date).slice(0,10) === iso) : null;
+          days.push({ date: label, scans: match ? parseInt(match.count) : 0 });
+        }
+        setChartData(days);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [token]);
+
   return (
     <div>
       <h1 style={{fontSize:28,fontWeight:700,color:'#1f2937',marginBottom:24}}>📈 Analytics</h1>
       <Card title="Scans This Week">
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="date"/><YAxis/><Tooltip/><Bar dataKey="scans" fill="#3b82f6"/></BarChart>
-        </ResponsiveContainer>
+        {loading ? (
+          <p style={{color:'#9ca3af',fontSize:14}}>Loading...</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="date"/><YAxis allowDecimals={false}/><Tooltip/><Bar dataKey="scans" fill="#3b82f6"/></BarChart>
+          </ResponsiveContainer>
+        )}
       </Card>
     </div>
   );
