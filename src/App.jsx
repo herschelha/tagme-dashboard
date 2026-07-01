@@ -193,7 +193,7 @@ export default function App() {
 
       {/* Content */}
       <div style={{maxWidth:1200,margin:'0 auto',padding:'32px 24px'}}>
-        {user?.role === 'admin' && page === 'dashboard' && <AdminDash data={dashData} onViewVisitors={openVisitors} />}
+        {user?.role === 'admin' && page === 'dashboard' && <AdminDash data={dashData} onViewVisitors={openVisitors} token={token} />}
         {user?.role === 'customer' && page === 'dashboard' && <CustomerDash data={dashData} onViewVisitors={openVisitors} token={token} />}
         {user?.role === 'customer' && page === 'visitors' && <VisitorsPage onViewAll={() => openVisitors('All Your Visitors', '/api/customer/analytics/visitors')} />}
         {page === 'analytics' && <AnalyticsPage token={token} />}
@@ -450,8 +450,19 @@ function SettingsPage({ token, user }) {
 }
 
 // ─── ADMIN DASHBOARD ──────────────────────────────────────────────────────────
-function AdminDash({ data, onViewVisitors }) {
+function AdminDash({ data, onViewVisitors, token }) {
   if (!data) return <p style={{textAlign:'center',color:'#6b7280',padding:40}}>Loading...</p>;
+
+  const statusBadge = (c) => {
+    if (!c.expires_at) return { label: 'No Subscription', bg: '#f3f4f6', color: '#6b7280' };
+    const expires = new Date(c.expires_at);
+    const now = new Date();
+    const daysLeft = (expires - now) / (1000 * 60 * 60 * 24);
+    if (daysLeft < 0) return { label: 'Expired', bg: '#fee2e2', color: '#dc2626' };
+    if (daysLeft <= 7) return { label: 'Expiring Soon', bg: '#fef3c7', color: '#b45309' };
+    return { label: 'Active', bg: '#d1fae5', color: '#065f46' };
+  };
+
   return (
     <div>
       <h1 style={{fontSize:28,fontWeight:700,color:'#1f2937',marginBottom:24}}>👥 Customer Management</h1>
@@ -461,24 +472,81 @@ function AdminDash({ data, onViewVisitors }) {
         <StatCard title="Monthly Revenue" value={`R${data.monthRevenue||0}`} icon="💰" color="#f59e0b" />
         <StatCard title="Scans This Month" value={data.monthScans||0} icon="📈" color="#8b5cf6" />
       </div>
+      <SubscriptionAlerts token={token} />
       <Card title="All Customers">
         <table style={{width:'100%',borderCollapse:'collapse'}}>
           <thead><tr style={{background:'#f9fafb'}}>
-            {['Name','Plan','Revenue','Scans','Status'].map(h=><th key={h} style={{padding:'12px 16px',textAlign:'left',fontSize:13,color:'#6b7280'}}>{h}</th>)}
+            {['Name','Paid','Expires','Scans','Status'].map(h=><th key={h} style={{padding:'12px 16px',textAlign:'left',fontSize:13,color:'#6b7280'}}>{h}</th>)}
           </tr></thead>
           <tbody>
-            {data.customers?.map(c=>(
-              <tr key={c.id} style={{borderTop:'1px solid #e5e7eb'}}>
-                <td style={{padding:'12px 16px',fontSize:14}}>{c.full_name}</td>
-                <td style={{padding:'12px 16px'}}><span style={{padding:'4px 10px',borderRadius:20,fontSize:12,fontWeight:600,background:c.tier==='premium'?'#ede9fe':'#d1fae5',color:c.tier==='premium'?'#7c3aed':'#065f46'}}>{c.tier?.toUpperCase()||'N/A'}</span></td>
-                <td style={{padding:'12px 16px',fontSize:14}}>R{c.price||0}</td>
-                <td style={{padding:'12px 16px',fontSize:14}}>{c.total_scans||0}</td>
-                <td style={{padding:'12px 16px'}}><span style={{padding:'4px 10px',borderRadius:20,fontSize:12,fontWeight:600,background:'#d1fae5',color:'#065f46'}}>Active</span></td>
-              </tr>
-            ))}
+            {data.customers?.map(c=>{
+              const badge = statusBadge(c);
+              return (
+                <tr key={c.id} style={{borderTop:'1px solid #e5e7eb'}}>
+                  <td style={{padding:'12px 16px',fontSize:14}}>{c.full_name}</td>
+                  <td style={{padding:'12px 16px',fontSize:14}}>R{c.amount_paid||0}</td>
+                  <td style={{padding:'12px 16px',fontSize:13,color:'#6b7280'}}>{c.expires_at ? new Date(c.expires_at).toLocaleDateString() : '—'}</td>
+                  <td style={{padding:'12px 16px',fontSize:14}}>{c.total_scans||0}</td>
+                  <td style={{padding:'12px 16px'}}><span style={{padding:'4px 10px',borderRadius:20,fontSize:12,fontWeight:600,background:badge.bg,color:badge.color}}>{badge.label}</span></td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </Card>
+    </div>
+  );
+}
+
+// ─── SUBSCRIPTION ALERTS ──────────────────────────────────────────────────────
+function SubscriptionAlerts({ token }) {
+  const [alerts, setAlerts] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch(`${API}/api/admin/subscriptions/alerts`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setAlerts(data);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [token]);
+
+  if (loading) return null;
+  const expired = alerts?.expired || [];
+  const expiringSoon = alerts?.expiringSoon || [];
+  if (expired.length === 0 && expiringSoon.length === 0) return null;
+
+  return (
+    <div style={{marginBottom:24}}>
+      {expired.length > 0 && (
+        <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:12,padding:'16px 20px',marginBottom:12}}>
+          <div style={{fontWeight:700,color:'#dc2626',fontSize:14,marginBottom:8}}>⚠️ {expired.length} Subscription{expired.length>1?'s':''} Expired</div>
+          {expired.map(s=>(
+            <div key={s.id} style={{fontSize:13,color:'#7f1d1d',padding:'4px 0'}}>
+              {s.full_name} ({s.email}) — expired {new Date(s.expires_at).toLocaleDateString()}
+            </div>
+          ))}
+        </div>
+      )}
+      {expiringSoon.length > 0 && (
+        <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:12,padding:'16px 20px'}}>
+          <div style={{fontWeight:700,color:'#b45309',fontSize:14,marginBottom:8}}>⏰ {expiringSoon.length} Subscription{expiringSoon.length>1?'s':''} Expiring Within 7 Days</div>
+          {expiringSoon.map(s=>(
+            <div key={s.id} style={{fontSize:13,color:'#78350f',padding:'4px 0'}}>
+              {s.full_name} ({s.email}) — expires {new Date(s.expires_at).toLocaleDateString()}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
