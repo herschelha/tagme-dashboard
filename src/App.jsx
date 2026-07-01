@@ -181,10 +181,12 @@ export default function App() {
           {user?.role === 'admin' ? <>
             <Tab label="👥 Customers" active={page==='dashboard'} onClick={()=>setPage('dashboard')} />
             <Tab label="📊 Analytics" active={page==='analytics'} onClick={()=>setPage('analytics')} />
+            <Tab label="⚙️ Settings" active={page==='settings'} onClick={()=>setPage('settings')} />
           </> : <>
             <Tab label="📊 Dashboard" active={page==='dashboard'} onClick={()=>setPage('dashboard')} />
             <Tab label="👥 Visitors" active={page==='visitors'} onClick={()=>setPage('visitors')} />
             <Tab label="📈 Analytics" active={page==='analytics'} onClick={()=>setPage('analytics')} />
+            <Tab label="⚙️ Settings" active={page==='settings'} onClick={()=>setPage('settings')} />
           </>}
         </div>
       </nav>
@@ -195,6 +197,7 @@ export default function App() {
         {user?.role === 'customer' && page === 'dashboard' && <CustomerDash data={dashData} onViewVisitors={openVisitors} />}
         {user?.role === 'customer' && page === 'visitors' && <VisitorsPage onViewAll={() => openVisitors('All Your Visitors', '/api/customer/analytics/visitors')} />}
         {page === 'analytics' && <AnalyticsPage />}
+        {page === 'settings' && <SettingsPage token={token} user={user} />}
       </div>
 
       {/* Modals */}
@@ -278,6 +281,106 @@ function VisitorsPage({ onViewAll }) {
             👥 View All Visitors
           </button>
         </div>
+      </Card>
+    </div>
+  );
+}
+
+// ─── SETTINGS PAGE ────────────────────────────────────────────────────────────
+function SettingsPage({ token, user }) {
+  const [pinEnabled, setPinEnabled] = useState(null); // null = still checking
+  const [newPin, setNewPin] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState(null); // { type: 'success'|'error', text }
+
+  useEffect(() => { checkStatus(); }, []);
+
+  const checkStatus = async () => {
+    try {
+      const res = await fetch(`${API}/api/pin-required/${user.id}`);
+      const data = await res.json();
+      setPinEnabled(!!data.required);
+    } catch (e) {
+      setPinEnabled(false);
+    }
+  };
+
+  const savePin = async (pinValue) => {
+    setSaving(true); setMsg(null);
+    try {
+      const res = await fetch(`${API}/api/customer/settings/pin`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ pin: pinValue })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save PIN');
+      setPinEnabled(data.protected);
+      setNewPin('');
+      setMsg({
+        type: 'success',
+        text: data.protected
+          ? 'PIN set — your landing page now asks for it before showing your details.'
+          : 'PIN removed — your landing page is open to everyone again, like before.'
+      });
+    } catch (e) {
+      setMsg({ type: 'error', text: e.message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (newPin && !/^\d{4,6}$/.test(newPin)) {
+      setMsg({ type: 'error', text: 'PIN must be 4-6 digits' });
+      return;
+    }
+    savePin(newPin);
+  };
+
+  return (
+    <div>
+      <h1 style={{fontSize:28,fontWeight:700,color:'#1f2937',marginBottom:24}}>⚙️ Settings</h1>
+      <Card title="Landing Page PIN">
+        <p style={{color:'#6b7280',fontSize:14,marginBottom:16,lineHeight:1.6}}>
+          Add a PIN so random people who tap your tag can't see your contact details without it. Leave it off to keep your page open to everyone, like before.
+        </p>
+        {pinEnabled === null ? (
+          <p style={{color:'#9ca3af',fontSize:14}}>Checking current status...</p>
+        ) : (
+          <>
+            <div style={{display:'inline-block',padding:'4px 10px',borderRadius:20,fontSize:12,fontWeight:600,marginBottom:16,background:pinEnabled?'#ede9fe':'#f3f4f6',color:pinEnabled?'#7c3aed':'#6b7280'}}>
+              {pinEnabled ? '🔒 PIN protection is ON' : '🔓 PIN protection is OFF'}
+            </div>
+            <form onSubmit={handleSubmit}>
+              <label style={{display:'block',fontSize:14,fontWeight:500,color:'#374151',marginBottom:8}}>
+                {pinEnabled ? 'Change PIN (4-6 digits)' : 'Set a PIN (4-6 digits)'}
+              </label>
+              <input
+                type="tel" inputMode="numeric" pattern="[0-9]*" maxLength={6}
+                value={newPin} onChange={e=>setNewPin(e.target.value.replace(/\D/g,''))}
+                placeholder="e.g. 1234"
+                style={{width:'100%',maxWidth:200,padding:'10px 12px',border:'1px solid #d1d5db',borderRadius:8,fontSize:16,letterSpacing:4,boxSizing:'border-box',marginBottom:12}}
+              />
+              <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+                <button type="submit" disabled={saving} style={{padding:'10px 20px',background:'#3b82f6',color:'white',border:'none',borderRadius:8,fontWeight:600,cursor:saving?'default':'pointer',opacity:saving?0.7:1}}>
+                  {saving ? 'Saving...' : (pinEnabled ? 'Update PIN' : 'Set PIN')}
+                </button>
+                {pinEnabled && (
+                  <button type="button" disabled={saving} onClick={()=>savePin('')} style={{padding:'10px 20px',background:'transparent',color:'#dc2626',border:'1px solid #fecaca',borderRadius:8,fontWeight:600,cursor:saving?'default':'pointer'}}>
+                    Remove PIN
+                  </button>
+                )}
+              </div>
+            </form>
+            {msg && (
+              <p style={{marginTop:12,fontSize:13,fontWeight:600,color:msg.type==='success'?'#047857':'#dc2626'}}>
+                {msg.text}
+              </p>
+            )}
+          </>
+        )}
       </Card>
     </div>
   );
