@@ -194,7 +194,7 @@ export default function App() {
       {/* Content */}
       <div style={{maxWidth:1200,margin:'0 auto',padding:'32px 24px'}}>
         {user?.role === 'admin' && page === 'dashboard' && <AdminDash data={dashData} onViewVisitors={openVisitors} />}
-        {user?.role === 'customer' && page === 'dashboard' && <CustomerDash data={dashData} onViewVisitors={openVisitors} />}
+        {user?.role === 'customer' && page === 'dashboard' && <CustomerDash data={dashData} onViewVisitors={openVisitors} token={token} />}
         {user?.role === 'customer' && page === 'visitors' && <VisitorsPage onViewAll={() => openVisitors('All Your Visitors', '/api/customer/analytics/visitors')} />}
         {page === 'analytics' && <AnalyticsPage />}
         {page === 'settings' && <SettingsPage token={token} user={user} />}
@@ -241,7 +241,7 @@ function Card({ title, children }) {
 }
 
 // ─── CUSTOMER DASHBOARD ───────────────────────────────────────────────────────
-function CustomerDash({ data, onViewVisitors }) {
+function CustomerDash({ data, onViewVisitors, token }) {
   if (!data) return <p style={{textAlign:'center',color:'#6b7280',padding:40}}>Loading...</p>;
   const stats = data.stats || {};
   return (
@@ -258,12 +258,75 @@ function CustomerDash({ data, onViewVisitors }) {
         style={{width:'100%',padding:14,background:'linear-gradient(135deg,#3b82f6,#2563eb)',color:'white',border:'none',borderRadius:12,fontSize:15,fontWeight:700,cursor:'pointer',marginBottom:24,boxShadow:'0 4px 12px rgba(59,130,246,0.3)'}}>
         👥 View All My Visitors
       </button>
+      <ScanLocationsCard token={token} />
       <Card title="Your Profile">
         <p><strong>Name:</strong> {data.user?.full_name}</p>
         <p style={{marginTop:8}}><strong>Email:</strong> {data.user?.email}</p>
         <p style={{marginTop:8}}><strong>Plan:</strong> {data.subscription?.tier?.toUpperCase()||'No plan'}</p>
       </Card>
     </div>
+  );
+}
+
+// ─── SCAN LOCATIONS CARD ──────────────────────────────────────────────────────
+function ScanLocationsCard({ token }) {
+  const [scans, setScans] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch(`${API}/api/customer/analytics/scans?limit=8`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setScans(data.scans || []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [token]);
+
+  return (
+    <Card title="📍 Recent Scan Locations">
+      {loading ? (
+        <p style={{color:'#9ca3af',fontSize:14}}>Loading...</p>
+      ) : scans.length === 0 ? (
+        <p style={{color:'#9ca3af',fontSize:14}}>No scans yet.</p>
+      ) : (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:12}}>
+          {scans.map(s => (
+            <div key={s.id} style={{border:'1px solid #e5e7eb',borderRadius:10,overflow:'hidden'}}>
+              {s.latitude && s.longitude ? (
+                <a
+                  href={`https://www.google.com/maps?q=${s.latitude},${s.longitude}`}
+                  target="_blank" rel="noreferrer"
+                  title="Open in Google Maps"
+                >
+                  <img
+                    src={`https://staticmap.openstreetmap.de/staticmap.php?center=${s.latitude},${s.longitude}&zoom=14&size=200x120&markers=${s.latitude},${s.longitude},red-pushpin`}
+                    alt="Scan location"
+                    style={{width:'100%',height:90,objectFit:'cover',display:'block'}}
+                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                  />
+                </a>
+              ) : null}
+              {!(s.latitude && s.longitude) && (
+                <div style={{width:'100%',height:90,background:'#f3f4f6',display:'flex',alignItems:'center',justifyContent:'center',color:'#9ca3af',fontSize:12,textAlign:'center',padding:8}}>
+                  📍 No location shared
+                </div>
+              )}
+              <div style={{padding:'6px 8px',fontSize:11,color:'#6b7280'}}>
+                {new Date(s.scanned_at).toLocaleString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }
 
